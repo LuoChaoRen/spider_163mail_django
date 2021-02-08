@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+
+{% block title %}邮件{% endblock %}
+{% block left-col-sm- %}col-sm-3{% endblock %}
+{% block left-col-md- %}col-md-2{% endblock %}
+{% block left_data %}
+    <ul class="nav nav-sidebar">
+        <li class="active"><a href="{% url 'index' 1%}">邮件列表 <span class="sr-only">(current)</span></a></li>
+        <li><a href="{% url 'start_spider' %}" >新建爬取</a></li>
+        <li><a href="{% url 'show_user' %}">用户管理</a></li>
+        <li><a href="{% url 'show_supuser' %}">系统管理</a></li>
+      </ul>
+{% endblock %}
+
+{% block right-col-sm- %}col-sm-9{% endblock %}
+{% block right-col-sm-offset- %}col-sm-offset-3{% endblock %}
+{% block right-col-md- %}col-md-10{% endblock %}
+{% block right-col-md-offset- %}col-md-offset-2{% endblock %}
+
+{% block right_data %}
+  <div class="sub-header" style="float: left; width: 100%;"  >
+      <h2  style="text-align: left;float: left" >邮件列表</h2>
+    <div class="dropdown " style="float: right;margin: 20px 100px 10px 0px;" >
+    <button type="button" class="btn dropdown-toggle"  id="dropdownMenu1" data-toggle="dropdown" style="text-align: right;float: right;" >
+        {% if filter_user  %}
+        {{ filter_user }}
+        {% else %}
+         全部用户
+        {% endif %}
+        <span class="caret"></span>
+    </button>
+       <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dropdownMenu1"  style="float: right;">
+        <li role="presentation">
+            <a role="menuitem" tabindex="-1" href="javascript:void(0);" onclick="select_user_all()" id="all_user">全部用户</a>
+        </li>
+       <script>
+               select_user_all =function () {
+                 $.ajax({
+                    url: '{% url 'select_user' %}',
+                    type: 'post',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        name:""
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert(data.msg)
+                        }
+                    },
+                })
+                }
+           </script>
+           {% for user in mail_user %}
+        <li role="presentation">
+            <a role="menuitem" tabindex="-1" href="javascript:void(0);" onclick="select_user{{ user.id }}()" >{{ user.name }}</a>
+        </li>
+            <script>
+               select_user{{ user.id }} =function () {
+                 $.ajax({
+                    url: '{% url 'select_user' %}',
+                    type: 'post',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        name:"{{ user.name }}"
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert(data.msg)
+                        }
+                    },
+                })
+                }
+           </script>
+           {% endfor %}
+
+
+    </ul>
+</div>
+  </div>
+
+  <div class="table-responsive"  style="float: left; width: 100%;"  >
+    <table class="table table-striped row" style="margin-left: 0px;margin-right: 0px;">
+      <thead>
+        <tr>
+          <th class="col-sm-1 col-md-1">发件箱</th>
+          <th class="col-sm-1 col-md-1">收件箱</th>
+          <th class="col-sm-2 col-md-2">主题</th>
+          <th class="col-sm-2 col-md-2">内容</th>
+          <th class="col-sm-1 col-md-1">发送时间</th>
+          <th class="col-sm-4 col-md-4">附件</th>
+          <th class="col-sm-1 col-md-1">操作</th>
+
+{#  <th>操作</th>#}
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in all_hits %}
+        <tr>
+          <td>{{ item.from_email }}</td>
+          <td>{{ item.to_email }}</td>
+          <td>{{ item.eml_subject }}</td>
+          <td>{{ item.eml_content }}</td>
+          <td>{{ item.sentDate}}</td>
+          <td>
+
+              {% for attm in item.eml_attm %}
+                  {% if attm %}
+                      <!-- 文件展示 -->
+                        <!-- 模态框（Modal） -->
+                        <div class="modal fade" id="myModal{{ item.eml_id }}{{ forloop.counter0  }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                                        <h4 class="modal-title" id="myModalLabel">{{attm.0}}</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        {% if attm.3 == "imgflg" %}
+                                            <img src="/static/email_data/{{attm.1}}{{ attm.0 }}" alt="{{ attm.0 }}" width="568px">
+                                        {% elif attm.3 == "zipflg" %}
+                                            请选择操作：&nbsp;&nbsp;<a href="javascript:void(0);" onclick="open_url{{ forloop.counter0  }}{{ item.eml_id }}()">打开文件位置</a>或
+                                            <a href="javascript:void(0);" onclick="xzip_open_url{{ forloop.counter0  }}{{ item.eml_id }}()">解压并打开</a>
+                                        {% elif attm.3 == "textflg" %}
+                                            <div style="width:568px;word-break:break-all" >{{ attm.2 }}</div>
+                                        {% else %}
+                                            {{attm.0}}
+                                        {% endif %}
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                    </div>
+                                </div><!-- /.modal-content -->
+                            </div><!-- /.modal -->
+                        </div>
+                          <script>
+                          open_url{{ forloop.counter0  }}{{ item.eml_id }} =function () {
+                             $.ajax({
+                                url: '{% url 'openfile_url' %}',
+                                type: 'post',
+                                data: {
+                                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                                    file_url :"/static/email_data/{{attm.1}}",
+                                },
+                                success: function (data) {
+                                    data = JSON.parse(data);
+                                    if(data.code){
+                                        {#window.open("{% url "file" %}")#}
+                                    }
+                                    else {
+                                        alert(data.msg)
+                                    }
+                                },
+                            })
+                            };
+                            xzip_open_url{{ forloop.counter0  }}{{ item.eml_id }} =function () {
+                             $.ajax({
+                                url: '{% url 'xzip_open' %}',
+                                type: 'post',
+                                data: {
+                                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                                    file_url :"/static/email_data/{{attm.1}}",
+                                    file_name :"{{attm.0}}",
+                                },
+                                success: function (data) {
+                                    data = JSON.parse(data);
+                                    if(data.code){
+                                        {#window.open("{% url "file" %}")#}
+                                    }
+                                    else {
+                                        alert(data.msg)
+                                    }
+                                },
+                            })
+                            }
+                            </script>
+
+                      {% if attm.3 == "nullflg"  %}
+                          【 <a href="javascript:void(0);" onclick="open_file{{ item.eml_id }}()" id="open_file_{{ item.eml_id }}" value="{{ attm.0 }}">{{ attm.0 }}</a>】
+                            <script>
+                              open_file{{ item.eml_id }} =function () {
+                                 var val = $('#open_file_{{ item.eml_id }}').val();
+                                 $.ajax({
+                                    url: '{% url 'open_file' %}',
+                                    type: 'post',
+                                    data: {
+                                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                                        file_url :"/static/email_data/{{attm.1}}",
+                                        file_name:"{{ attm.0 }}"
+                                    },
+                                    success: function (data) {
+                                        data = JSON.parse(data);
+                                        if(data.code){
+                                            window.open("{% url "file" %}")
+                                        }
+                                        else {
+                                            alert(data.msg)
+                                        }
+                                    },
+                                })
+                                }
+                            </script>
+                          {% else %}
+                          【<a href="javascript:void(0);" data-toggle="modal" data-target="#myModal{{ item.eml_id }}{{ forloop.counter0  }}">{{ attm.0 }}</a>】
+                        {% endif %}
+
+                  {% endif %}
+
+              {% endfor %}
+          </td>
+           <td><button onclick="del_this{{ item.eml_id }}()">删除</button></td>
+            <script>
+                del_this{{ item.eml_id }} = function () {
+                    if(confirm("确定删除本条数据?")){
+                     　　$.ajax({
+                                url: '{% url "del_this" %}',
+                                type: 'post',
+                                data: {
+                                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                                    data_id : "{{ item.eml_id }}",
+                                    user_from:"{{ item.user_from }}",
+                                    sent_Date:"{{ item.sentDate }}"
+                                },
+                                success: function (data) {
+                                    data = JSON.parse(data);
+                                    if(data.code){
+                                        location.reload();
+                                    }
+                                    else {
+                                        alert("del_Error:"+data.msg)
+                                    }
+                                }
+                            })
+                    }
+                }
+            </script>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+    {% if all_hits %}
+    <nav aria-label="Page navigation" style="float: left; width: 100%;">
+		<div class="pagination">
+			<ul class="pagination">
+{#            # 判断当前页是否有上一页#}
+			{% if all_hits.has_previous %}
+				<li><a href="{% url 'index' all_hits.previous_page_number %}" aria-label="Previous">
+					<span aria-hidden="true">&laquo;</span></a></li>
+            {% endif %}
+{## 循环遍历页码列表，并展示到底部#}
+            {% for num in all_hits.paginator.page_range%}
+            	{%if pindex == all_hits.number%}
+                	<li><a href="">{{ num }}</a></li>
+                {%else%}
+                    <li><a href="{% url 'index' num %}">{{ num }}</a></li>
+                {%endif%}
+             {% endfor %}
+{## 判断当前页是否有下一页#}
+             {% if all_hits.has_next %}
+                 <li><a href="{% url 'index' all_hits.next_page_number %}" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span></a></li>
+              {% endif %}
+       		</ul>
+		</div>
+    </nav>
+    <div><button style="float: right" onclick="clean_data()">清空数据</button></div>
+     {% else %}
+        <div>暂无数据&nbsp;&nbsp;<a href="{% url 'start_spider' %}">爬取数据>></a></div>
+    {% endif %}
+{% endblock %}
+
+{% block models %}
+    <!-- loading -->
+<div class="modal fade" id="loading" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop='static'>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">提示</h4>
+      </div>
+      <div class="modal-body">
+        正在提取数据,请保持当前页面，等待提取完成。<span id="result"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block js_block %}
+
+ <script type="text/javascript">
+
+   $('#start_spider').click(function () {
+        $('#loading').modal('show');
+        $.ajax({
+            url: '{% url "start_spider" %}',
+            type: 'post',
+            data: {csrfmiddlewaretoken: '{{ csrf_token }}' },
+            success: function (data) {
+                data = JSON.parse(data);
+                $('#loading').modal('hide');
+                if(data.code){
+                    location.reload();
+                }
+                else {
+                    console.log("spiderError:"+data.msg)
+                }
+            }
+        })
+    });
+    clean_data = function () {
+        if(confirm("确定清空{{ filter_user }}所有数据?")){
+         　　$.ajax({
+                    url: '{% url "clean_data" %}',
+                    type: 'post',
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}',"filter_user":'{{ filter_user }}' },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert("celanError:"+data.msg)
+                        }
+                    }
+                })
+        }
+    }
+   </script>
+
+  {% endblock %}

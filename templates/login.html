@@ -1,0 +1,59 @@
+{% extends 'login_base.html' %}
+{% load static %}
+{% block title %}登录{{ file_name }}{% endblock %}
+
+{% block linkcss %}
+    <link href="{% static 'css/signin.css' %}" rel="stylesheet">
+{% endblock %}
+{% block left_data %}
+{% endblock %}
+
+{% block right-col-sm- %}col-sm-12{% endblock %}
+{% block right-col-sm-offset- %}{% endblock %}
+{% block right-col-md- %}col-md-12{% endblock %}
+{% block right-col-md-offset- %}{% endblock %}
+{% block right_data %}
+    <div class="container" style="margin-top:10%;">
+      <form class="form-signin">
+        <h3 class="form-signin-heading" style="text-align: center;color: white;">神秘的登录</h3>
+        <label for="inputname" class="sr-only">用户名</label>
+        <input type="text" id="inputname" class="form-control" placeholder="UserName" required="" autofocus="">
+        <label for="inputPassword" class="sr-only">密码</label>
+        <input type="password" id="inputPassword" class="form-control" placeholder="PassWord" required="">
+        <button class="btn btn-lg btn-primary btn-block" onclick="dologin()" type="button">登录</button>
+      </form>
+    </div> <!-- /container -->
+{% endblock %}
+
+{% block models %}
+{% endblock %}
+
+{% block js_block %}
+    <script>
+    var dologin = function () {
+        var login_name = $("#inputname").val();
+        var login_passwd = $("#inputPassword").val();
+        $.ajax({
+                url: '{% url 'do_login' %}',
+                type: 'post',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}',
+                    name:login_name,
+                    passwd:login_passwd
+                },
+                success: function (data) {
+                    data = JSON.parse(data);
+                    if(!data.code){
+                        alert(data.msg)
+                    }
+                    else {
+                        window.location.href = '{% url 'index' 1 %}'
+                    }
+                },
+            error:function (data) {
+                alert("error"+data.msg)
+            }
+            })
+    }
+    </script>
+  {% endblock %}

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}新建爬取{% endblock %}
+{% block left-col-sm- %}col-sm-3{% endblock %}
+{% block left-col-md- %}col-md-2{% endblock %}
+{% block left_data %}
+    <ul class="nav nav-sidebar">
+        <li><a href="{% url 'index' 1 %}">邮件列表</a></li>
+        <li class="active"><a href="#" >新建爬取<span class="sr-only">(current)</span></a></li>
+        <li><a href="{% url 'show_user' %}">用户管理</a></li>
+        <li><a href="{% url 'show_supuser' %}">系统管理</a></li>
+      </ul>
+{% endblock %}
+
+{% block right-col-sm- %}col-sm-9{% endblock %}
+{% block right-col-sm-offset- %}col-sm-offset-3{% endblock %}
+{% block right-col-md- %}col-md-10{% endblock %}
+{% block right-col-md-offset- %}col-md-offset-2{% endblock %}
+
+{% block right_data %}
+  <h2 class="sub-header" >选择用户</h2>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>用户名</th>
+          <th>
+              操作
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+      {% if not mal %}
+           <tr>
+          <td><a href="{% url 'show_user' %}">添加爬取用户</a></td>
+          <td>
+          </td>
+        </tr>
+      {% else %}
+      {% for item in mal %}
+
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>
+          <button type="button" id="start_spider1{{ item.id }}">【覆盖原数据】爬取</button>
+          <button type="button" id="start_spider2{{ item.id }}">【仅新增数据】爬取</button>
+{#          <button type="button" onclick="test()">爬取</button>#}
+          </td>
+        </tr>
+           <script type="text/javascript">
+           $('#start_spider1{{ item.id }}').click(function () {
+                {#$('#loading').modal('show');#}
+                $.ajax({
+                    url: '{% url "run_spider"  %}',
+                    type: 'post',
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}',passwd:'{{ item.passwd }}',name:'{{ item.name }}',add_flg:0},
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        {#$('#loading').modal('hide');#}
+                        if(data.code){
+                            alert("爬取开始，请稍后查看结果")
+                        }
+                        else {
+                            console.log("spiderError:"+data.msg)
+                        }
+                    }
+                })
+            });
+           $('#start_spider2{{ item.id }}').click(function () {
+                {#$('#loading').modal('show');#}
+                $.ajax({
+                    url: '{% url "run_spider"  %}',
+                    type: 'post',
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}',passwd:'{{ item.passwd }}',name:'{{ item.name }}',add_flg:1},
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        {#$('#loading').modal('hide');#}
+                        if(data.code){
+                            alert("爬取开始，请稍后查看结果")
+                        }
+                        else {
+                            console.log("spiderError:"+data.msg)
+                        }
+                    }
+                })
+            });
+
+           </script>
+        {% endfor %}
+      {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}
+
+{% block models %}
+    <!-- loading -->
+<div class="modal fade" id="loading" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop='static'>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">提示</h4>
+      </div>
+      <div class="modal-body">
+        正在爬取数据,请等候<span id="result"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block js_block %}
+{#    #打印控制台信息#}
+{# <script src="{% static 'js/console.js' %}"></script>#}
+{#    <script>#}
+{#     function test() {#}
+{#         screenLog.init();#}
+{#         var htmlobj = $.ajax({ url: "{% static 'log/log.txt' %}", dataType: 'text',async: false });#}
+{#         var arr = htmlobj.responseText.split(/\r?\n/);#}
+{#         for (var i = 0; i < arr.length; i++) {#}
+{#                var title = arr[i];#}
+{#                screenLog.log(title);#}
+{#                i++;#}
+{#            }#}
+{#         }#}
+{#     function testa(){#}
+{#         test(); // 第一次加载数据#}
+{#         // 开启定时任务，时间间隔为3000 ms。#}
+{#         setInterval(function(){#}
+             {#screenLog.clear();#}
+{#          test();#}
+{#         }, 1000);#}
+{#        }#}
+{##}
+{##}
+{#</script>#}
+{#    <script type="text/javascript">#}
+{#      $(document).keyup(function (event) {#}
+{#          switch(event.keyCode) {#}
+{#              case 27:#}
+{#                  FilterWindow.Hide();#}
+{#          }#}
+{#      });#}
+{#    </script>#}
+  {% endblock %}

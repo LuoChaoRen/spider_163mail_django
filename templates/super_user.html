@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}用户管理{% endblock %}
+{% block left-col-sm- %}col-sm-3{% endblock %}
+{% block left-col-md- %}col-md-2{% endblock %}
+{% block left_data %}
+    <ul class="nav nav-sidebar">
+        <li><a href="{% url 'index' 1 %}">邮件列表</a></li>
+        <li><a href="{% url 'start_spider' %}" >新建爬取</a></li>
+        <li><a href="{% url 'show_user' %}" >用户管理</a></li>
+        <li class="active"><a href="#">系统管理<span class="sr-only">(current)</span></a></li>
+    </ul>
+{% endblock %}
+
+{% block right-col-sm- %}col-sm-9{% endblock %}
+{% block right-col-sm-offset- %}col-sm-offset-3{% endblock %}
+{% block right-col-md- %}col-md-10{% endblock %}
+{% block right-col-md-offset- %}col-md-offset-2{% endblock %}
+
+{% block right_data %}
+  <div class="sub-header" style="overflow: hidden; " >
+      <h2 style="text-align: left;float: left">系统用户</h2>
+      <button style="text-align: right;float: right;margin:20px 20px;" data-toggle="modal" data-target="#add_user" >添加用户</button>
+           <!-- 模态框（Modal） -->
+            <div class="modal fade" id="add_user" tabindex="-1" role="dialog" aria-labelledby="add_userLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                            <h4 class="modal-title" id="add_userLabel">添加用户</h4>
+                        </div>
+                        <div class="modal-body">
+                            用户名：<input type="text" id="add_name" value=""><br>
+                            密&nbsp;&nbsp;&nbsp;&nbsp;码：<input type="text" id="add_passwd" value="">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                            <button type="button" class="btn btn-primary" id="submitadd">提交更改</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+     <script type="text/javascript">
+       $('#submitadd').click(function () {
+            $('#loading').modal('show');
+            var add_name = $("#add_name").val();
+            var add_passwd = $("#add_passwd").val();
+            $.ajax({
+                url: '{% url "add_supuser" %}',
+                type: 'post',
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}',passwd:add_passwd,name:add_name},
+                success: function (data) {
+                    data = JSON.parse(data);
+                    $('#loading').modal('hide');
+                    if(data.code){
+                        location.reload();
+                    }
+                    else {
+                        alert("Error:"+data.msg)
+                    }
+                }
+            })
+        });
+     </script>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>用户名</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in mal %}
+        <tr>
+          <td>
+              {{ item.name }}
+            {% if item.user_grade == 1 %}
+                （超级管理员）
+              {% endif %}
+          </td>
+          <td>
+          <button type="button" data-toggle="modal" data-target="#edituser{{ item.id }}" >编辑</button>
+               <!-- 模态框（Modal） -->
+            <div class="modal fade" id="edituser{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="edituserLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                            <h4 class="modal-title" id="edituserLabel">{{ item.name }}</h4>
+                        </div>
+                        <div class="modal-body">
+                            用户名：{{ item.name }}<br>
+                            密&nbsp;&nbsp;&nbsp;&nbsp;码：<input type="text" id="edit_passwd" value="{{ item.passwd }}">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                            <button type="button" class="btn btn-primary" id="submitedit{{ item.id }}">提交更改</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+              {% if item.user_grade == 2 %}
+              <button type="button" data-toggle="modal" data-target="#deluser{{ item.id }}">删除</button>
+              {% endif %}
+              <!-- 模态框（Modal） -->
+            <div class="modal fade" id="deluser{{ item.id }}" tabindex="-1" role="dialog" aria-labelledby="deluserLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"></button>
+                            <h4 class="modal-title" id="deluserLabel">删除</h4>
+                        </div>
+                        <div class="modal-body">
+                            确定删除吗？
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                            <button type="button" class="btn btn-primary"  id="del_user{{ item.id }}">提交更改</button>
+                        </div>
+                    </div><!-- /.modal-content -->
+                </div><!-- /.modal -->
+            </div>
+          </td>
+        </tr>
+           <script type="text/javascript">
+           $('#submitedit{{ item.id }}').click(function () {
+                $('#loading').modal('show');
+                var new_passwd = $("#edit_passwd").val();
+                $.ajax({
+                    url: '{% url "edit_supuser"  item.id %}',
+                    type: 'post',
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}',passwd:new_passwd},
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        $('#loading').modal('hide');
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert("Error:"+data.msg)
+                        }
+                    }
+                })
+            });
+           $('#del_user{{ item.id }}').click(function () {
+                $('#loading').modal('show');
+                $.ajax({
+                    url: '{% url "del_supuser" item.id %}',
+                    type: 'post',
+                    data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        $('#loading').modal('hide');
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert("Error:"+data.msg)
+                        }
+                    }
+                })
+            });
+
+           </script>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock %}
+
+{% block models %}
+    <!-- loading -->
+<div class="modal fade" id="loading" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop='static'>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">提示</h4>
+      </div>
+      <div class="modal-body">
+        提交中,请等候<span id="result"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}
+
+{% block js_block %}
+
+
+  {% endblock %}

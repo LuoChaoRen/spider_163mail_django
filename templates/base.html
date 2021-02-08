@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="{% static 'img/favicon.ico' %}">
+
+    <title>{% block title %}{% endblock title %}</title>
+    <!-- Bootstrap core CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="{% static 'css/ie10-viewport-bug-workaround.css' %}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+    {% block linkcss %}
+    {% endblock %}
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="{% static 'js/ie8-responsive-file-warning.js' %}"></script><![endif]-->
+    <script src="{% static 'js/ie-emulation-modes-warning.js' %}"></script>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="{% static 'js/html5shiv.min.js' %}"></script>
+      <script src="{% static 'js/respond.min.js' %}"></script>
+    <![endif]-->
+      <script src="{% static 'js/cdn_jquery.min.js' %}"></script>
+    <script>window.jQuery || document.write('<script src="{% static 'js/jquery.min.js' %}"><\/script>')</script>
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="{% url 'logout' %}">退出登录</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right" >
+            <li><a href="javascript:void(0);" onclick="search_data()"><strong>全站搜索</strong></a></li>
+            <li><a href="javascript:void(0);" onclick="search_data_sent()"><strong>搜发件人</strong></a></li>
+            <li><a href="javascript:void(0);" onclick="search_data_subject()"><strong>搜主题</strong></a></li>
+            <li><a href="javascript:void(0);" onclick="search_data_attm()"><strong>搜附件</strong></a></li>
+          </ul>
+          <form class="navbar-form navbar-right">
+            <input id="search_input" type="text" class="form-control" placeholder="搜索...">
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="{% block left-col-sm- %}{% endblock %} {% block left-col-md- %}{% endblock %} sidebar" style="margin: 0;bottom: 0">
+          {% block left_data %}{% endblock %}
+        </div>
+        <div class="{% block right-col-sm- %}{% endblock %} {% block right-col-sm-offset- %}{% endblock %} {% block right-col-md- %}{% endblock %} {% block right-col-md-offset- %}{% endblock %} main">
+            {% block right_data %}
+            {% endblock %}
+        {% block models %}
+{#            模态框#}
+        {% endblock %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <!-- Just to make our placeholder images work. Don't actually copy the next line! -->
+    <script src="{% static 'js/holder.min.js' %}"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="{% static 'js/ie10-viewport-bug-workaround.js' %}"></script>
+    <script>
+        search_data = function () {
+            var search_val = $("#search_input").val();
+            $.ajax({
+                    url: '{% url 'search' %}',
+                    type: 'post',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        content:search_val,
+                        sent:"",
+                        subject:"",
+                        attm:""
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert(data.msg)
+                        }
+                    },
+                })
+        };
+        search_data_sent = function () {
+            var search_val = $("#search_input").val();
+            $.ajax({
+                    url: '{% url 'search' %}',
+                    type: 'post',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        content:"",
+                        sent:search_val,
+                        subject:"",
+                        attm:""
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert(data.msg)
+                        }
+                    },
+                })
+        };
+        search_data_subject = function () {
+            var search_val = $("#search_input").val();
+            $.ajax({
+                    url: '{% url 'search' %}',
+                    type: 'post',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        content:"",
+                        sent:"",
+                        subject:search_val,
+                        attm:""
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert(data.msg)
+                        }
+                    },
+                })
+        };
+        search_data_attm = function () {
+            var search_val = $("#search_input").val();
+            $.ajax({
+                    url: '{% url 'search' %}',
+                    type: 'post',
+                    data: {
+                        csrfmiddlewaretoken: '{{ csrf_token }}',
+                        content:"",
+                        sent:"",
+                        subject:"",
+                        attm:search_val
+                    },
+                    success: function (data) {
+                        data = JSON.parse(data);
+                        if(data.code){
+                            location.reload();
+                        }
+                        else {
+                            alert(data.msg)
+                        }
+                    },
+                })
+        }
+
+    </script>
+          {% block js_block %}
+          {% endblock %}
+  </body>
+</html>
